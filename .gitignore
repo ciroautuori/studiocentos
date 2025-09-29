@@ -1,0 +1,128 @@
+# ====================================================================
+# 🎯 STUDIOCENTOS MONOREPO GITIGNORE
+# ====================================================================
+# Team Development Optimized - Repository Privata
+# 🔸 KEEP: .env files, configurazioni, source code
+# ❌ IGNORE: Build artifacts, dependencies, logs
+
+# ====================================================================
+# BUILD ARTIFACTS
+# ====================================================================
+dist/
+build/
+out/
+target/
+*.egg-info/
+.next/
+.nuxt/
+.output/
+
+# ====================================================================
+# DEPENDENCIES
+# ====================================================================
+node_modules/
+venv/
+env/
+.venv/
+vendor/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ====================================================================
+# LOGS & TEMPORARY FILES
+# ====================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+tmp/
+temp/
+.cache/
+.temp/
+.tmp/
+
+# ====================================================================
+# IDE & EDITORS
+# ====================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.DS_Store
+Thumbs.db
+
+# ====================================================================
+# RUNTIME DATA
+# ====================================================================
+*.pid
+*.seed
+*.lock
+session.lock
+usercache.json
+crash-reports/
+*.bak
+*.backup
+*.old
+
+# ====================================================================
+# SSL & CERTIFICATES (tranne configurazioni)
+# ====================================================================
+*.pem
+*.key
+*.crt
+acme.json
+*.p12
+*.pfx
+
+# ====================================================================
+# DATABASE
+# ====================================================================
+*.sqlite
+*.sqlite3
+*.db
+
+# ====================================================================
+# ENVIRONMENT (OPZIONALE - Dipende da policy team)
+# ====================================================================
+# Se repo privata per team admin, puoi TENERE i .env
+# Altrimenti, decommentare:
+# .env
+# .env.local
+# .env.*.local
+
+# ====================================================================
+# TESTING
+# ====================================================================
+coverage/
+.nyc_output/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ====================================================================
+# DOCKER (OPZIONALE)
+# ====================================================================
+# Tieni docker-compose.yml e Dockerfile
+# Ignora solo i dati runtime:
+*-data/
+!postgres-data/.gitkeep
+
+# ====================================================================
+# KEEP ALWAYS (Whitelist)
+# ====================================================================
+# - docker-compose.yml
+# - Dockerfile
+# - package.json
+# - requirements.txt
+# - .env files (se repo privata)
+# - Source code
+# - Configurazioni
+# - Scripts di automazione
+# ====================================================================

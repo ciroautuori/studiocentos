@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres-central:
+    image: postgres:16-alpine
+    container_name: postgres-central
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_SUPER_PASSWORD:-centralPostgres2024!}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_central_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_central_data:
+
+networks:
+  postgres-network:
+    external: true
+  traefik-network:
+    external: true

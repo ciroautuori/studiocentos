@@ -1,0 +1,54 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PostgreSQL Central",
+      "Group": "Production Servers",
+      "Host": "postgres-central",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "Central PostgreSQL server for all applications"
+    },
+    "2": {
+      "Name": "ISS Database", 
+      "Group": "Application Databases",
+      "Host": "postgres-central",
+      "Port": 5432,
+      "MaintenanceDB": "iss_wbs",
+      "Username": "iss_user",
+      "SSLMode": "prefer",
+      "Comment": "Innovazione Sociale Salernitana WBS"
+    },
+    "3": {
+      "Name": "Soliso Database",
+      "Group": "Application Databases", 
+      "Host": "postgres-central",
+      "Port": 5432,
+      "MaintenanceDB": "soliso_db",
+      "Username": "soliso_user", 
+      "SSLMode": "prefer",
+      "Comment": "Soliso APS application database"
+    },
+    "4": {
+      "Name": "RimBuild Database",
+      "Group": "Application Databases",
+      "Host": "postgres-central", 
+      "Port": 5432,
+      "MaintenanceDB": "rimbuild_db",
+      "Username": "rimbuild_user",
+      "SSLMode": "prefer", 
+      "Comment": "RimBuild application database"
+    },
+    "5": {
+      "Name": "UMMR Database",
+      "Group": "Application Databases",
+      "Host": "postgres-central",
+      "Port": 5432, 
+      "MaintenanceDB": "ummr_db",
+      "Username": "ummr_user",
+      "SSLMode": "prefer",
+      "Comment": "UMMR application database"
+    }
+  }
+}

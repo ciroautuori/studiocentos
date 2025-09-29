@@ -1,0 +1,85 @@
+version: "3.9"
+
+# ESEMPIO: Come aggiungere una nuova applicazione con dominio e SSL
+services:
+  
+  # ESEMPIO 1: App con dominio principale
+  my-new-app:
+    image: nginx:alpine
+    container_name: my-new-app
+    restart: unless-stopped
+    volumes:
+      - ./my-app:/usr/share/nginx/html
+    labels:
+      # Abilita Traefik
+      - "traefik.enable=true"
+      
+      # Dominio principale con SSL automatico
+      - "traefik.http.routers.mynewapp.rule=Host(`nuovodominio.com`)"
+      - "traefik.http.routers.mynewapp.entrypoints=websecure"
+      - "traefik.http.routers.mynewapp.tls=true"
+      - "traefik.http.routers.mynewapp.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mynewapp.loadbalancer.server.port=80"
+    networks:
+      - traefik-network
+
+  # ESEMPIO 2: App con subdominio
+  api-service:
+    image: node:alpine
+    container_name: api-service
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.apiservice.rule=Host(`api.nuovodominio.com`)"
+      - "traefik.http.routers.apiservice.entrypoints=websecure"
+      - "traefik.http.routers.apiservice.tls=true"
+      - "traefik.http.routers.apiservice.tls.certresolver=letsencrypt"
+      - "traefik.http.services.apiservice.loadbalancer.server.port=3000"
+      
+      # CORS per API
+      - "traefik.http.middlewares.api-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.api-cors.headers.accesscontrolalloworiginlist=https://nuovodominio.com"
+      - "traefik.http.routers.apiservice.middlewares=api-cors"
+    networks:
+      - traefik-network
+
+  # ESEMPIO 3: Più domini sulla stessa app
+  multi-domain-app:
+    image: nginx:alpine
+    container_name: multi-domain-app
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      
+      # Dominio 1
+      - "traefik.http.routers.multidomain1.rule=Host(`dominio1.com`)"
+      - "traefik.http.routers.multidomain1.entrypoints=websecure"
+      - "traefik.http.routers.multidomain1.tls=true"
+      - "traefik.http.routers.multidomain1.tls.certresolver=letsencrypt"
+      
+      # Dominio 2
+      - "traefik.http.routers.multidomain2.rule=Host(`dominio2.com`)"
+      - "traefik.http.routers.multidomain2.entrypoints=websecure"
+      - "traefik.http.routers.multidomain2.tls=true"
+      - "traefik.http.routers.multidomain2.tls.certresolver=letsencrypt"
+      
+      # Servizio condiviso
+      - "traefik.http.services.multidomain.loadbalancer.server.port=80"
+    networks:
+      - traefik-network
+
+networks:
+  traefik-network:
+    name: traefik-network
+    external: true
+
+# PROCEDURA PER AGGIUNGERE NUOVO DOMINIO:
+#
+# 1. Punta il DNS del nuovo dominio a questo server IP
+# 2. Aggiungi il servizio con i labels sopra
+# 3. docker-compose up -d
+# 4. Traefik genera automaticamente il certificato SSL!
+#
+# SUPPORTO WILDCARD (opzionale):
+# Per *.example.com usa DNS challenge invece di HTTP:
+# --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare

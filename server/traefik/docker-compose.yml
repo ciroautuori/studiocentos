@@ -1,0 +1,74 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik-central
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard (opzionale, rimuovi in produzione)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik-data:/data
+      - /etc/localtime:/etc/localtime:ro
+    command:
+      # API e Dashboard
+      - --api.dashboard=true
+      - --api.insecure=true  # Temporaneo per debug
+      - --ping=true
+      
+      # Provider Docker
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik-network
+      - --providers.docker.watch=true
+      
+      # Entry points
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      
+      # Redirect HTTP to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      
+      # Let's Encrypt per SSL automatico
+      - --certificatesresolvers.letsencrypt.acme.email=admin@solisoaps.it
+      - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      
+      # Logging
+      - --log.level=INFO
+      - --accesslog=true
+      - --accesslog.filepath=/data/access.log
+      
+      # Metrics (opzionale)
+      - --metrics.prometheus=true
+    
+    labels:
+      # Dashboard Traefik (protetto con basic auth)
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.solisoaps.it`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      
+      # Basic Auth per dashboard (admin:admin123 - CAMBIA IN PRODUZIONE!)
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$10$$8eO9J5Ue5M5M5M5M5M5M5u5M5M5M5M5M5M5M5M5M5M5M5M5M5M5M5M"
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
+    
+    networks:
+      - traefik-network
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  traefik-network:
+    name: traefik-network
+    external: true

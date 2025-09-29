@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: soliso-backend
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://soliso_user:soliso_secure_2024!@postgres-central:5432/soliso_db
+      - SECRET_KEY=your_secret_key_change_in_production
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=password_sicura
+      - ROOT_PATH=/api 
+      - FRONTEND_URL=https://solisoaps.it
+      - BACKEND_URL=https://solisoaps.it/api
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+    labels:
+      # Abilita Traefik
+      - "traefik.enable=true"
+      
+      # Router per API backend
+      - "traefik.http.routers.soliso-api.rule=Host(`solisoaps.it`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.soliso-api.entrypoints=websecure"
+      - "traefik.http.routers.soliso-api.tls=true"
+      - "traefik.http.routers.soliso-api.tls.certresolver=letsencrypt"
+      
+      # Servizio backend
+      - "traefik.http.services.soliso-api.loadbalancer.server.port=8001"
+      
+      # Middleware per CORS
+      - "traefik.http.middlewares.soliso-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.soliso-cors.headers.accesscontrolalloworiginlist=https://solisoaps.it,https://admin.solisoaps.it"
+      - "traefik.http.middlewares.soliso-cors.headers.accesscontrolallowheaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.soliso-cors.headers.addvaryheader=true"
+      - "traefik.http.routers.soliso-api.middlewares=soliso-cors"
+    networks:
+      - traefik-network
+      - postgres-network
+      - soliso-internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: soliso-frontend
+    restart: unless-stopped
+    labels:
+      # Abilita Traefik
+      - "traefik.enable=true"
+      
+      # Router per frontend (dominio principale)
+      - "traefik.http.routers.soliso-frontend.rule=Host(`solisoaps.it`)"
+      - "traefik.http.routers.soliso-frontend.entrypoints=websecure"
+      - "traefik.http.routers.soliso-frontend.tls=true"
+      - "traefik.http.routers.soliso-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.soliso-frontend.priority=1"  # Priorità bassa per catch-all
+      
+      # Servizio frontend
+      - "traefik.http.services.soliso-frontend.loadbalancer.server.port=80"
+      
+      # Middleware per SPA routing (React Router) - semplificato
+      - "traefik.http.middlewares.soliso-spa.replacepathregex.regex=^/[^.]*$$"
+      - "traefik.http.middlewares.soliso-spa.replacepathregex.replacement=/index.html"
+      - "traefik.http.routers.soliso-frontend.middlewares=soliso-spa"
+    networks:
+      - traefik-network
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: soliso-admin
+    restart: unless-stopped
+    labels:
+      # Abilita Traefik
+      - "traefik.enable=true"
+      
+      # Router per admin panel
+      - "traefik.http.routers.soliso-admin.rule=Host(`admin.solisoaps.it`)"
+      - "traefik.http.routers.soliso-admin.entrypoints=websecure"
+      - "traefik.http.routers.soliso-admin.tls=true"
+      - "traefik.http.routers.soliso-admin.tls.certresolver=letsencrypt"
+      
+      # Servizio admin
+      - "traefik.http.services.soliso-admin.loadbalancer.server.port=80"
+      
+      # Security headers per admin
+      - "traefik.http.middlewares.soliso-admin-security.headers.framedeny=true"
+      - "traefik.http.middlewares.soliso-admin-security.headers.sslredirect=true"
+      - "traefik.http.middlewares.soliso-admin-security.headers.browserxssfilter=true"
+      - "traefik.http.middlewares.soliso-admin-security.headers.contenttypenosniff=true"
+      - "traefik.http.routers.soliso-admin.middlewares=soliso-admin-security"
+    networks:
+      - traefik-network
+
+# PostgreSQL Central - database removed (using centralized postgres-central)
+
+networks:
+  traefik-network:
+    name: traefik-network
+    external: true  # Rete creata dal Traefik centrale
+  postgres-network:
+    name: postgres-network
+    external: true
+  soliso-internal:
+    name: soliso-internal
+    driver: bridge
+    internal: true  # Rete interna per DB
