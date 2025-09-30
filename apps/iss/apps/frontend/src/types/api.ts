@@ -76,6 +76,36 @@ export interface BandoFilters {
   keywords_popolari: string[];
 }
 
+// ========== AI SEMANTIC SEARCH TYPES ==========
+
+export interface SemanticSearchResult {
+  bando: Bando;
+  similarity_score: number;
+  match_explanation: string;
+}
+
+export interface SemanticSearchRequest {
+  query: string;
+  limit?: number;
+  threshold?: number;
+}
+
+export interface ProfileMatchRequest {
+  organization_type?: string;
+  sectors?: string[];
+  target_groups?: string[];
+  keywords?: string[];
+  geographical_area?: string;
+  max_amount?: number;
+  limit?: number;
+}
+
+export interface SuggestionsRequest {
+  search_history?: string[];
+  current_context?: string;
+  limit?: number;
+}
+
 // ========== ISS APS ACTIVITIES TYPES ==========
 
 export type CorsoCategoria = 'alfabetizzazione' | 'professionale' | 'assistive' | 'avanzato';

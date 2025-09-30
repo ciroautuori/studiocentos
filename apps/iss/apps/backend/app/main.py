@@ -64,6 +64,20 @@ async def startup_events():
     except Exception as e:
         logger.warning(f"Bando scheduler failed to start: {e}")
 
+    # AI Semantic Search initialization (ASYNC MODE)
+    async def initialize_ai_async():
+        try:
+            from .services.semantic_search import semantic_search_service
+            await semantic_search_service.initialize()
+            logger.info("🤖 AI Semantic Search initialized successfully!")
+        except Exception as e:
+            logger.error(f"❌ AI Semantic Search initialization failed: {e}")
+    
+    # Start AI initialization in background without blocking startup
+    import asyncio
+    asyncio.create_task(initialize_ai_async())
+    logger.info("🚀 AI Semantic Search initialization started in background")
+
 
 @app.on_event("shutdown")
 async def shutdown_events():

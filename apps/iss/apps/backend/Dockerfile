@@ -42,8 +42,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Set working directory
 WORKDIR /app
 
-# Crea utente non-root per sicurezza
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Crea utente non-root per sicurezza e directories per AI
+RUN groupadd -r appuser && useradd -r -g appuser appuser \
+    && mkdir -p /home/appuser/.cache \
+    && chown -R appuser:appuser /home/appuser
 
 # Copia codice applicazione
 COPY --chown=appuser:appuser . .

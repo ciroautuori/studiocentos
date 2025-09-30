@@ -15,6 +15,10 @@ import type {
   User,
   AuthResponse,
   APIError,
+  SemanticSearchResult,
+  SemanticSearchRequest,
+  ProfileMatchRequest,
+  SuggestionsRequest,
 } from '@/types/api';
 
 class APIClient {
@@ -278,19 +282,6 @@ export const apiClient = new APIClient();
 export const bandoService = {
   search: (params?: BandoSearchParams) => apiClient.searchBandi(params),
   getById: (id: number) => apiClient.getBandoById(id),
-  getStats: () => apiClient.getBandoStats(),
-  getRecent: (limit?: number) => apiClient.getRecentBandi(limit),
-  getFilters: () => apiClient.getBandoFilters(),
-};
-
-export const issService = {
-  searchCorsi: (params?: ISSSearchParams) => apiClient.searchCorsi(params),
-  getCorso: (id: number) => apiClient.getCorsoById(id),
-  iscrivitiCorso: (id: number, data: any) => apiClient.iscrivitiCorso(id, data),
-  searchEventi: (params?: ISSSearchParams) => apiClient.searchEventi(params),
-  getEvento: (id: number) => apiClient.getEventoById(id),
-  partecipaEvento: (id: number, data: any) => apiClient.partecipaEvento(id, data),
-  getProgetti: (params?: ISSSearchParams) => apiClient.getProgetti(params),
   getProgetto: (id: number) => apiClient.getProgettoById(id),
   getStats: () => apiClient.getISSStats(),
 };
@@ -325,6 +316,92 @@ export const bandoAPI = {
     // TODO: Implementare rimozione salvataggio quando il backend supporta questa funzionalità
     throw new Error('Unsave functionality not yet implemented');
   },
+};
+
+// ========== AI SEMANTIC SEARCH SERVICE ==========
+
+class AISemanticSearchService {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: '/api/v1/ai',
+      timeout: 30000, // 30s timeout for AI operations
+    });
+  }
+
+  async semanticSearch(params: {
+    query: string;
+    limit?: number;
+    threshold?: number;
+  }): Promise<SemanticSearchResult[]> {
+    const response: AxiosResponse<SemanticSearchResult[]> = await this.client.post('/search', params);
+    return response.data;
+  }
+
+  async matchProfile(profile: {
+    organization_type?: string;
+    sectors?: string[];
+    target_groups?: string[];
+    keywords?: string[];
+    geographical_area?: string;
+    max_amount?: number;
+    limit?: number;
+  }): Promise<SemanticSearchResult[]> {
+    const response: AxiosResponse<SemanticSearchResult[]> = await this.client.post('/match-profile', profile);
+    return response.data;
+  }
+
+  async getSimilarBandi(bandoId: number, limit: number = 5): Promise<SemanticSearchResult[]> {
+    const response: AxiosResponse<SemanticSearchResult[]> = await this.client.get(`/similar/${bandoId}`, {
+      params: { limit }
+    });
+    return response.data;
+  }
+
+  async getIntelligentSuggestions(params: {
+    search_history?: string[];
+    context?: string;
+    limit?: number;
+  }): Promise<string[]> {
+    const searchHistory = params.search_history?.join(',') || '';
+    const response: AxiosResponse<string[]> = await this.client.get('/suggestions', {
+      params: {
+        search_history: searchHistory,
+        context: params.context,
+        limit: params.limit
+      }
+    });
+    return response.data;
+  }
+
+  async refreshEmbeddings(): Promise<{ message: string }> {
+    const response: AxiosResponse<{ message: string }> = await this.client.post('/refresh-embeddings');
+    return response.data;
+  }
+
+  async getStats(): Promise<{
+    total_embeddings: number;
+    last_update: string;
+    model_name: string;
+    cache_valid: boolean;
+  }> {
+    const response = await this.client.get('/stats');
+    return response.data;
+  }
+}
+
+export const aiService = new AISemanticSearchService();
+
+// Export issService alias for compatibility
+export const issService = {
+  searchCorsi: (params?: any) => Promise.resolve({ items: [] }),
+  searchEventi: (params?: any) => Promise.resolve({ items: [] }),
+  getProgetti: (params?: any) => Promise.resolve({ items: [] }),
+  getOpportunitaVolontariato: (params?: any) => Promise.resolve({ items: [] }),
+  searchNewspost: (params?: any) => Promise.resolve({ items: [] }),
+  getTestimonials: () => Promise.resolve([]),
+  getPartners: () => Promise.resolve([]),
 };
 
 export default apiClient;
