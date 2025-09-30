@@ -77,3 +77,65 @@ class TestimonialListResponse(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+# Richiesta Schemas
+class TestimonialRichiestaCreate(BaseModel):
+    """Schema per la creazione di una richiesta testimonial"""
+    destinatario_email: str = Field(..., max_length=200)
+    destinatario_nome: str = Field(..., max_length=200)
+    tipo_contesto: TestimonialTipo
+    contesto_id: Optional[int] = None
+    messaggio_personalizzato: Optional[str] = None
+
+
+class TestimonialRichiestaResponse(BaseModel):
+    """Schema per la risposta di una richiesta"""
+    id: int
+    destinatario_email: str
+    destinatario_nome: str
+    tipo_contesto: TestimonialTipo
+    contesto_id: Optional[int] = None
+    messaggio_personalizzato: Optional[str] = None
+    inviata: bool = False
+    data_invio: Optional[datetime] = None
+    risposta_ricevuta: bool = False
+    data_risposta: Optional[datetime] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Template Schemas
+class TestimonialTemplateCreate(BaseModel):
+    """Schema per la creazione di un template"""
+    nome: str = Field(..., max_length=100)
+    oggetto_email: str = Field(..., max_length=200)
+    corpo_email: str
+    tipo_contesto: TestimonialTipo
+
+
+class TestimonialTemplateResponse(BaseModel):
+    """Schema per la risposta di un template"""
+    id: int
+    nome: str
+    oggetto_email: str
+    corpo_email: str
+    tipo_contesto: TestimonialTipo
+    attivo: bool = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Stats Schemas
+class TestimonialStatsResponse(BaseModel):
+    """Schema per le statistiche testimonial"""
+    totale_testimonial: int
+    testimonial_approvati: int
+    testimonial_pending: int
+    rating_medio: float
+    testimonial_per_tipo: dict

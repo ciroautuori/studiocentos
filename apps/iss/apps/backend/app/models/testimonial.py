@@ -179,13 +179,13 @@ class Testimonial(Base):
     contatto_giornalisti = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    autore = relationship("User", foreign_keys=[user_id], back_populates="testimonials_scritte")
-    verificata_da = relationship("User", foreign_keys=[verificata_da_id], back_populates="testimonials_verificate")
-    moderata_da = relationship("User", foreign_keys=[moderata_da_id], back_populates="testimonials_moderate")
-    corso = relationship("Corso", back_populates="testimonials")
-    evento = relationship("Evento", back_populates="testimonials")
-    progetto = relationship("Progetto", back_populates="testimonials")
-    bando = relationship("Bando", back_populates="testimonials")
+    autore = relationship("User", foreign_keys=[user_id])
+    verificata_da = relationship("User", foreign_keys=[verificata_da_id])
+    moderata_da = relationship("User", foreign_keys=[moderata_da_id])
+    corso = relationship("Corso")
+    evento = relationship("Evento")
+    progetto = relationship("Progetto")
+    bando = relationship("Bando")
 
     def __repr__(self):
         return f"<Testimonial(id={self.id}, titolo='{self.titolo}', rating={self.rating})>"
@@ -253,12 +253,12 @@ class TestimonialRichiesta(Base):
     prossimo_reminder = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    destinatario = relationship("User", foreign_keys=[user_id], back_populates="richieste_testimonial_ricevute")
-    inviata_da = relationship("User", foreign_keys=[inviata_da_id], back_populates="richieste_testimonial_inviate")
-    testimonial = relationship("Testimonial", back_populates="richiesta_origine")
-    corso = relationship("Corso", back_populates="richieste_testimonial")
-    evento = relationship("Evento", back_populates="richieste_testimonial")
-    progetto = relationship("Progetto", back_populates="richieste_testimonial")
+    destinatario = relationship("User", foreign_keys=[user_id])
+    inviata_da = relationship("User", foreign_keys=[inviata_da_id])
+    testimonial = relationship("Testimonial")
+    corso = relationship("Corso")
+    evento = relationship("Evento")
+    progetto = relationship("Progetto")
 
 
 class TestimonialTemplate(Base):
@@ -292,7 +292,7 @@ class TestimonialTemplate(Base):
     tasso_risposta = Column(Numeric(5, 2), nullable=True)  # Percentuale di risposta
 
     # Relationships
-    creato_da = relationship("User", back_populates="templates_testimonial")
+    creato_da = relationship("User")
 
 
 class TestimonialMetrica(Base):
@@ -322,4 +322,4 @@ class TestimonialMetrica(Base):
     tablet_views = Column(Integer, default=0, nullable=False)
 
     # Relationships
-    testimonial = relationship("Testimonial", back_populates="metriche")
+    testimonial = relationship("Testimonial")

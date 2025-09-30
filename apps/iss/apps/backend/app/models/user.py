@@ -107,6 +107,10 @@ class User(Base):
     badges = Column(Text, nullable=True)  # JSON array di badge guadagnati
     level = Column(Integer, default=1, nullable=False)
     
+    # Relationships
+    # Note: Defined with strings to avoid circular imports
+    # corsi_creati = relationship("Corso", foreign_keys="Corso.creato_da_user_id", back_populates="creato_da")
+    
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', role='{self.role}', status='{self.status}')>"
     

@@ -183,10 +183,10 @@ class Progetto(Base):
     open_source = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    creato_da = relationship("User", foreign_keys=[creato_da_user_id], back_populates="progetti_creati")
+    creato_da = relationship("User", foreign_keys=[creato_da_user_id])
     modificato_da = relationship("User", foreign_keys=[modificato_da_user_id])
-    project_manager = relationship("User", foreign_keys=[project_manager_id], back_populates="progetti_gestiti")
-    bando_riferimento = relationship("Bando", back_populates="progetti_collegati")
+    project_manager = relationship("User", foreign_keys=[project_manager_id])
+    bando_riferimento = relationship("Bando")
     team_members = relationship("ProgettoTeamMember", back_populates="progetto", cascade="all, delete-orphan")
     aggiornamenti = relationship("ProgettoAggiornamento", back_populates="progetto", cascade="all, delete-orphan")
     documenti = relationship("ProgettoDocumento", back_populates="progetto", cascade="all, delete-orphan")
@@ -251,8 +251,8 @@ class ProgettoTeamMember(Base):
     feedback = Column(Text, nullable=True)
 
     # Relationships
-    progetto = relationship("Progetto", back_populates="team_members")
-    user = relationship("User", back_populates="progetti_partecipati")
+    progetto = relationship("Progetto")
+    user = relationship("User")
 
 
 class ProgettoAggiornamento(Base):
@@ -286,8 +286,8 @@ class ProgettoAggiornamento(Base):
     pubblico = Column(Boolean, default=True, nullable=False)
 
     # Relationships
-    progetto = relationship("Progetto", back_populates="aggiornamenti")
-    autore = relationship("User", back_populates="aggiornamenti_progetti")
+    progetto = relationship("Progetto")
+    autore = relationship("User")
 
 
 class ProgettoDocumento(Base):
@@ -321,5 +321,5 @@ class ProgettoDocumento(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    progetto = relationship("Progetto", back_populates="documenti")
-    caricato_da = relationship("User", back_populates="documenti_caricati")
+    progetto = relationship("Progetto")
+    caricato_da = relationship("User")

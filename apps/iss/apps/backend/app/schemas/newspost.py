@@ -79,3 +79,50 @@ class NewsPostListResponse(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+# Commento Schemas
+class NewsCommentoCreate(BaseModel):
+    """Schema per la creazione di un commento"""
+    newspost_id: int
+    contenuto: str = Field(..., min_length=1, max_length=1000)
+    parent_commento_id: Optional[int] = None
+
+
+class NewsCommentoResponse(BaseModel):
+    """Schema per la risposta di un commento"""
+    id: int
+    newspost_id: int
+    user_id: int
+    contenuto: str
+    parent_commento_id: Optional[int] = None
+    approvato: bool = False
+    numero_like: int = 0
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Like Schemas
+class NewsLikeResponse(BaseModel):
+    """Schema per la risposta di un like"""
+    id: int
+    newspost_id: int
+    user_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Stats Schemas
+class NewsStatsResponse(BaseModel):
+    """Schema per le statistiche news"""
+    totale_articoli: int
+    articoli_pubblicati: int
+    totale_visualizzazioni: int
+    totale_like: int
+    totale_commenti: int
+    articoli_piu_letti: List[NewsPostResponse]

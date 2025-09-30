@@ -1,49 +1,73 @@
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v2.11
     container_name: traefik-central
-    restart: unless-stopped
+    restart: always
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"  # Dashboard (opzionale, rimuovi in produzione)
+      - "8080:8080"  # Dashboard
+    environment:
+      - TZ=Europe/Rome
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik-data:/data
       - /etc/localtime:/etc/localtime:ro
+      - ./traefik-dynamic.yml:/traefik-dynamic.yml:ro
     command:
-      # API e Dashboard
+      # ========== API & DASHBOARD ==========
       - --api.dashboard=true
-      - --api.insecure=true  # Temporaneo per debug
+      - --api.insecure=true
       - --ping=true
+      - --ping.entryPoint=web
       
-      # Provider Docker
+      # ========== DOCKER PROVIDER - OTTIMIZZATO ==========
       - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=traefik-network
       - --providers.docker.watch=true
+      - --providers.docker.useBindPortIP=false
       
-      # Entry points
+      # ========== FILE PROVIDER - CONFIGURAZIONE STATICA ==========
+      - --providers.file.filename=/traefik-dynamic.yml
+      - --providers.file.watch=true
+      
+      # ========== ENTRY POINTS ==========
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       
-      # Redirect HTTP to HTTPS
+      # HTTP → HTTPS Redirect
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
       
-      # Let's Encrypt per SSL automatico
+      # ========== SSL / TLS - LET'S ENCRYPT ==========
       - --certificatesresolvers.letsencrypt.acme.email=admin@solisoaps.it
       - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # Staging per test (commenta in produzione)
+      # - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
       
-      # Logging
+      # ========== LOGGING ==========
       - --log.level=INFO
+      - --log.format=common
       - --accesslog=true
       - --accesslog.filepath=/data/access.log
+      - --accesslog.bufferingsize=100
       
-      # Metrics (opzionale)
+      # ========== METRICS & MONITORING ==========
       - --metrics.prometheus=true
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addServicesLabels=true
+      
+      # ========== PERFORMANCE ==========
+      - --serversTransport.insecureSkipVerify=false
+      - --global.checkNewVersion=false
+      - --global.sendAnonymousUsage=false
     
     labels:
       # Dashboard Traefik (protetto con basic auth)
@@ -61,14 +85,29 @@ services:
     networks:
       - traefik-network
     
-    # Healthcheck
+    # ========== HEALTHCHECK AVANZATO ==========
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck"]
-      interval: 30s
-      timeout: 5s
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
       retries: 3
+      start_period: 10s
+    
+    # ========== DEPLOY CONFIGURATION ==========
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
 networks:
   traefik-network:
     name: traefik-network
+    driver: bridge
     external: true
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

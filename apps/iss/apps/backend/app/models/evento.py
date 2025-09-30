@@ -213,7 +213,7 @@ class Evento(Base):
     evento_ricorrente = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    creato_da = relationship("User", foreign_keys=[creato_da_user_id], back_populates="eventi_creati")
+    creato_da = relationship("User", foreign_keys=[creato_da_user_id])
     modificato_da = relationship("User", foreign_keys=[modificato_da_user_id])
     iscrizioni = relationship("EventoIscrizione", back_populates="evento", cascade="all, delete-orphan")
     recensioni = relationship("EventoRecensione", back_populates="evento", cascade="all, delete-orphan")
@@ -288,8 +288,8 @@ class EventoIscrizione(Base):
     codice_attestato = Column(String(50), unique=True, nullable=True)
 
     # Relationships
-    evento = relationship("Evento", back_populates="iscrizioni")
-    user = relationship("User", back_populates="eventi_iscritti")
+    evento = relationship("Evento")
+    user = relationship("User")
 
 
 class EventoCheckIn(Base):
@@ -313,8 +313,8 @@ class EventoCheckIn(Base):
     ip_address = Column(String(45), nullable=True)
 
     # Relationships
-    evento = relationship("Evento", back_populates="check_ins")
-    user = relationship("User", back_populates="check_ins_eventi")
+    evento = relationship("Evento")
+    user = relationship("User")
 
 
 class EventoRecensione(Base):
@@ -352,5 +352,5 @@ class EventoRecensione(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    evento = relationship("Evento", back_populates="recensioni")
-    user = relationship("User", back_populates="recensioni_eventi")
+    evento = relationship("Evento")
+    user = relationship("User")

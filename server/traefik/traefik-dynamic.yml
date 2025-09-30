@@ -1,0 +1,15 @@
+http:
+  routers:
+    iss-api:
+      rule: "Host(`innovazionesocialesalernitana.it`) && PathPrefix(`/api`)"
+      service: iss-api
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+  
+  services:
+    iss-api:
+      loadBalancer:
+        servers:
+          - url: "http://iss-backend:8000"

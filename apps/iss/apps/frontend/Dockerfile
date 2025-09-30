@@ -20,14 +20,16 @@ COPY tsconfig.json tsconfig.node.json vite.config.ts tailwind.config.ts postcss.
 # Installa dipendenze (layer cacheable)
 RUN pnpm install --frozen-lockfile --prefer-offline
 
+# Crea directory public se non esiste
+RUN mkdir -p public
+
 # Copia il codice sorgente
 COPY src/ ./src/
-COPY public/ ./public/
 COPY index.html ./
 
 # Build ottimizzato per produzione
 ENV NODE_ENV=production
-ENV VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=/api/v1
 RUN pnpm build && \
     # Rimuovi source maps per sicurezza
     find dist -name "*.map" -delete && \
@@ -35,38 +37,29 @@ RUN pnpm build && \
     find dist -name "*.js" -exec gzip -k {} \; && \
     find dist -name "*.css" -exec gzip -k {} \;
 
-# Production stage - Nginx ottimizzato
-FROM nginx:1.25-alpine AS production
+# Production stage - Server statico leggero
+FROM node:20-alpine AS production
 
-# Installa curl per health checks
-RUN apk add --no-cache curl
+# Installa serve globalmente
+RUN npm install -g serve
 
-# Rimuovi configurazione nginx default
-RUN rm /etc/nginx/conf.d/default.conf
+# Copia build dal builder
+COPY --from=builder /app/dist /app
 
-# Copia configurazione nginx ottimizzata
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Crea utente non-root
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S appuser -u 1001 -G appuser && \
+    chown -R appuser:appuser /app
 
-# Copia applicazione builddata dal builder
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Ottimizza permessi
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
-
-# Crea directory per logs e cache
-RUN mkdir -p /var/log/nginx /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp \
-    /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp && \
-    touch /var/log/nginx/access.log /var/log/nginx/error.log && \
-    chown -R nginx:nginx /var/log/nginx /var/cache/nginx && \
-    chmod -R 755 /var/cache/nginx
-
-# Health check ottimizzato
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:80/ || exit 1
+USER appuser
+WORKDIR /app
 
 # Esponi porta
-EXPOSE 80
+EXPOSE 3000
 
-# Start nginx (rimuoviamo USER nginx per evitare problemi di permessi)
-CMD ["nginx", "-g", "daemon off;"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# Avvia serve con SPA fallback
+CMD ["serve", "-s", ".", "-l", "3000"]

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
-from app.models.news import NewsPost
+from app.models.newspost import NewsPost
 from app.schemas.news import NewsCreate, NewsUpdate
 
 

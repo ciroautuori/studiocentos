@@ -158,7 +158,7 @@ class Corso(Base):
     archiviato = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    creato_da = relationship("User", foreign_keys=[creato_da_user_id], back_populates="corsi_creati")
+    creato_da = relationship("User", foreign_keys=[creato_da_user_id])
     modificato_da = relationship("User", foreign_keys=[modificato_da_user_id])
     iscrizioni = relationship("CorsoIscrizione", back_populates="corso", cascade="all, delete-orphan")
     lezioni = relationship("CorsoLezione", back_populates="corso", cascade="all, delete-orphan")
@@ -213,7 +213,7 @@ class CorsoIscrizione(Base):
 
     # Relationships
     corso = relationship("Corso", back_populates="iscrizioni")
-    user = relationship("User", back_populates="corsi_iscritti")
+    user = relationship("User")
 
 
 class CorsoLezione(Base):
@@ -278,4 +278,4 @@ class CorsoRecensione(Base):
 
     # Relationships
     corso = relationship("Corso", back_populates="recensioni")
-    user = relationship("User", back_populates="recensioni_corsi")
+    user = relationship("User")

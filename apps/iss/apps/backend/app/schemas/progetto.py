@@ -99,3 +99,88 @@ class ProgettoListResponse(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+# Team Member Schemas
+class ProgettoTeamMemberCreate(BaseModel):
+    """Schema per la creazione di un membro del team"""
+    user_id: int
+    ruolo: str = Field(..., max_length=100)
+    descrizione_ruolo: Optional[str] = None
+
+
+class ProgettoTeamMemberResponse(BaseModel):
+    """Schema per la risposta di un membro del team"""
+    id: int
+    user_id: int
+    ruolo: str
+    descrizione_ruolo: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Aggiornamento Schemas
+class ProgettoAggiornamentoCreate(BaseModel):
+    """Schema per la creazione di un aggiornamento progetto"""
+    titolo: str = Field(..., max_length=200)
+    contenuto: str
+    tipo: Optional[str] = Field(None, max_length=50)
+
+
+class ProgettoAggiornamentoResponse(BaseModel):
+    """Schema per la risposta di un aggiornamento"""
+    id: int
+    titolo: str
+    contenuto: str
+    tipo: Optional[str] = None
+    created_at: datetime
+    creato_da_user_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Documento Schemas
+class ProgettoDocumentoCreate(BaseModel):
+    """Schema per la creazione di un documento"""
+    nome: str = Field(..., max_length=200)
+    descrizione: Optional[str] = None
+    file_path: str
+    tipo_file: Optional[str] = Field(None, max_length=50)
+
+
+class ProgettoDocumentoResponse(BaseModel):
+    """Schema per la risposta di un documento"""
+    id: int
+    nome: str
+    descrizione: Optional[str] = None
+    file_path: str
+    tipo_file: Optional[str] = None
+    dimensione_file: Optional[int] = None
+    created_at: datetime
+    caricato_da_user_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Stats Schemas
+class ProgettoStatsResponse(BaseModel):
+    """Schema per le statistiche dei progetti"""
+    totale_progetti: int
+    progetti_attivi: int
+    progetti_completati: int
+    budget_totale: float
+    budget_utilizzato: float
+
+
+# Search Filters
+class ProgettoSearchFilters(BaseModel):
+    """Schema per i filtri di ricerca"""
+    categoria: Optional[str] = None
+    stato: Optional[str] = None
+    search: Optional[str] = None
+    data_inizio_da: Optional[date] = None
+    data_inizio_a: Optional[date] = None

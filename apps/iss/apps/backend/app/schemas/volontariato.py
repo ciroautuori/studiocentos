@@ -99,3 +99,140 @@ class OpportunitaVolontariatoListResponse(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+# Candidatura Schemas
+class StatoCandidatura(str, Enum):
+    INVIATA = "inviata"
+    IN_VALUTAZIONE = "in_valutazione"
+    ACCETTATA = "accettata"
+    RIFIUTATA = "rifiutata"
+    RITIRATA = "ritirata"
+
+
+class VolontariatoCandidaturaCreate(BaseModel):
+    """Schema per la creazione di una candidatura"""
+    opportunita_id: int
+    motivazione: str
+    disponibilita: Optional[str] = None
+    esperienza_precedente: Optional[str] = None
+
+
+class VolontariatoCandidaturaUpdate(BaseModel):
+    """Schema per l'aggiornamento di una candidatura"""
+    motivazione: Optional[str] = None
+    disponibilita: Optional[str] = None
+    esperienza_precedente: Optional[str] = None
+    stato: Optional[StatoCandidatura] = None
+    note_valutazione: Optional[str] = None
+
+
+class VolontariatoCandidaturaResponse(BaseModel):
+    """Schema per la risposta di una candidatura"""
+    id: int
+    opportunita_id: int
+    user_id: int
+    motivazione: str
+    disponibilita: Optional[str] = None
+    esperienza_precedente: Optional[str] = None
+    stato: StatoCandidatura
+    note_valutazione: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class VolontariatoCandidaturaListResponse(BaseModel):
+    """Schema per la lista paginata di candidature"""
+    candidature: List[VolontariatoCandidaturaResponse]
+    total: int
+    skip: int
+    limit: int
+
+
+# Attività Schemas
+class VolontariatoAttivitaCreate(BaseModel):
+    """Schema per la creazione di un'attività di volontariato"""
+    opportunita_id: int
+    user_id: int
+    data_attivita: date
+    ore_svolte: float = Field(..., ge=0.5, le=24)
+    descrizione: str
+    note: Optional[str] = None
+
+
+class VolontariatoAttivitaResponse(BaseModel):
+    """Schema per la risposta di un'attività"""
+    id: int
+    opportunita_id: int
+    user_id: int
+    data_attivita: date
+    ore_svolte: float
+    descrizione: str
+    note: Optional[str] = None
+    validata: bool = False
+    validata_da_user_id: Optional[int] = None
+    data_validazione: Optional[datetime] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Certificato Schemas
+class VolontariatoCertificatoResponse(BaseModel):
+    """Schema per la risposta di un certificato"""
+    id: int
+    user_id: int
+    opportunita_id: int
+    numero_certificato: str
+    data_emissione: date
+    ore_totali: float
+    descrizione_attivita: str
+    file_path: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Skill Schemas
+class VolontariatoSkillCreate(BaseModel):
+    """Schema per la creazione di una skill"""
+    nome: str = Field(..., max_length=100)
+    descrizione: Optional[str] = None
+    categoria: Optional[str] = Field(None, max_length=50)
+
+
+class VolontariatoSkillResponse(BaseModel):
+    """Schema per la risposta di una skill"""
+    id: int
+    nome: str
+    descrizione: Optional[str] = None
+    categoria: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Stats Schemas
+class VolontariatoStatsResponse(BaseModel):
+    """Schema per le statistiche del volontariato"""
+    totale_opportunita: int
+    opportunita_attive: int
+    totale_candidature: int
+    totale_volontari_attivi: int
+    ore_totali_volontariato: float
+    certificati_emessi: int
+
+
+# Match Schemas
+class VolontariatoMatchResponse(BaseModel):
+    """Schema per il matching opportunità-volontario"""
+    opportunita_id: int
+    match_score: float = Field(..., ge=0, le=100)
+    motivi_match: List[str]
+    skills_corrispondenti: List[str]

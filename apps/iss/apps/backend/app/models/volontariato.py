@@ -174,12 +174,12 @@ class OpportunitaVolontariato(Base):
     candidature_aperte = Column(Boolean, default=True, nullable=False)
 
     # Relationships
-    creato_da = relationship("User", foreign_keys=[creato_da_user_id], back_populates="opportunita_create")
+    creato_da = relationship("User", foreign_keys=[creato_da_user_id])
     modificato_da = relationship("User", foreign_keys=[modificato_da_user_id])
-    responsabile = relationship("User", foreign_keys=[responsabile_id], back_populates="opportunita_gestite")
-    progetto = relationship("Progetto", back_populates="opportunita_volontariato")
-    evento = relationship("Evento", back_populates="opportunita_volontariato")
-    corso = relationship("Corso", back_populates="opportunita_volontariato")
+    responsabile = relationship("User", foreign_keys=[responsabile_id])
+    progetto = relationship("Progetto")
+    evento = relationship("Evento")
+    corso = relationship("Corso")
     candidature = relationship("VolontariatoCandidatura", back_populates="opportunita", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -254,8 +254,8 @@ class VolontariatoCandidatura(Base):
     certificazioni_url = Column(String(500), nullable=True)
 
     # Relationships
-    opportunita = relationship("OpportunitaVolontariato", back_populates="candidature")
-    user = relationship("User", back_populates="candidature_volontariato")
+    opportunita = relationship("OpportunitaVolontariato")
+    user = relationship("User")
     attivita = relationship("VolontariatoAttivita", back_populates="candidatura", cascade="all, delete-orphan")
 
 
@@ -293,8 +293,8 @@ class VolontariatoAttivita(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    candidatura = relationship("VolontariatoCandidatura", back_populates="attivita")
-    approvata_da = relationship("User", back_populates="attivita_approvate")
+    candidatura = relationship("VolontariatoCandidatura")
+    approvata_da = relationship("User")
 
 
 class VolontariatoCertificato(Base):
@@ -335,8 +335,8 @@ class VolontariatoCertificato(Base):
     codice_verifica = Column(String(100), unique=True, nullable=True)
 
     # Relationships
-    volontario = relationship("User", foreign_keys=[user_id], back_populates="certificati_volontariato")
-    rilasciato_da = relationship("User", foreign_keys=[rilasciato_da_id], back_populates="certificati_rilasciati")
+    volontario = relationship("User", foreign_keys=[user_id])
+    rilasciato_da = relationship("User", foreign_keys=[rilasciato_da_id])
 
 
 class VolontariatoSkill(Base):
@@ -369,5 +369,5 @@ class VolontariatoSkill(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    volontario = relationship("User", foreign_keys=[user_id], back_populates="skills_volontariato")
-    verificata_da = relationship("User", foreign_keys=[verificata_da_id], back_populates="skills_verificate")
+    volontario = relationship("User", foreign_keys=[user_id])
+    verificata_da = relationship("User", foreign_keys=[verificata_da_id])

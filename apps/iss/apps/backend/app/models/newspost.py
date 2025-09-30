@@ -162,9 +162,9 @@ class NewsPost(Base):
     sponsored = Column(Boolean, default=False, nullable=False)      # Contenuto sponsorizzato
 
     # Relationships
-    autore = relationship("User", foreign_keys=[autore_id], back_populates="articoli_scritti")
-    editore = relationship("User", foreign_keys=[editore_id], back_populates="articoli_editati")
-    approvato_da = relationship("User", foreign_keys=[approvato_da_id], back_populates="articoli_approvati")
+    autore = relationship("User", foreign_keys=[autore_id])
+    editore = relationship("User", foreign_keys=[editore_id])
+    approvato_da = relationship("User", foreign_keys=[approvato_da_id])
     commenti = relationship("NewsCommento", back_populates="post", cascade="all, delete-orphan")
     like = relationship("NewsLike", back_populates="post", cascade="all, delete-orphan")
 
@@ -231,11 +231,11 @@ class NewsCommento(Base):
     numero_segnalazioni = Column(Integer, default=0, nullable=False)
 
     # Relationships
-    post = relationship("NewsPost", back_populates="commenti")
-    user = relationship("User", back_populates="commenti_news")
-    moderato_da = relationship("User", foreign_keys=[moderato_da_id], back_populates="commenti_moderati")
-    parent = relationship("NewsCommento", remote_side=[id], back_populates="risposte")
-    risposte = relationship("NewsCommento", back_populates="parent", cascade="all, delete-orphan")
+    post = relationship("NewsPost")
+    user = relationship("User", foreign_keys=[user_id])
+    moderato_da = relationship("User", foreign_keys=[moderato_da_id])
+    parent = relationship("NewsCommento", remote_side=[id], foreign_keys=[parent_id])
+    risposte = relationship("NewsCommento", back_populates="parent", foreign_keys=[parent_id], cascade="all, delete-orphan")
 
 
 class NewsLike(Base):
@@ -254,8 +254,8 @@ class NewsLike(Base):
     )
 
     # Relationships
-    post = relationship("NewsPost", back_populates="like")
-    user = relationship("User", back_populates="likes_news")
+    post = relationship("NewsPost")
+    user = relationship("User")
 
 
 class NewsNewsletter(Base):
@@ -293,7 +293,7 @@ class NewsNewsletter(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    creata_da = relationship("User", back_populates="newsletters_create")
+    creata_da = relationship("User")
 
 
 class NewsCategoriaSottoscrizione(Base):
@@ -317,4 +317,4 @@ class NewsCategoriaSottoscrizione(Base):
     )
 
     # Relationships
-    user = relationship("User", back_populates="sottoscrizioni_news")
+    user = relationship("User")

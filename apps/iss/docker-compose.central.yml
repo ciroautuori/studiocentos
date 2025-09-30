@@ -1,0 +1,210 @@
+# ISS - Docker Compose con PostgreSQL Central e Traefik
+# Configurazione ottimizzata per infrastruttura centralizzata
+
+services:
+  # Redis - Cache e sessioni
+  redis:
+    image: redis:7-alpine
+    container_name: iss-redis
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 256mb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+    networks:
+      - iss-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # ISS Backend API
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: iss-backend
+    restart: unless-stopped
+    environment:
+      # Database - PostgreSQL Central
+      DATABASE_URL: postgresql+asyncpg://${ISS_DB_USER:-iss_user}:${ISS_DB_PASSWORD:-iss_secure_2024!}@postgres-central:5432/${ISS_DB_NAME:-iss_wbs}
+      DATABASE_POOL_SIZE: 20
+      DATABASE_MAX_OVERFLOW: 30
+      
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production-please}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      REDIS_CACHE_TTL: 3600
+      
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+      
+      # CORS
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://innovazionesocialesalernitana.it,https://admin.innovazionesocialesalernitana.it}
+      
+      # Email
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-noreply@innovazionesocialesalernitana.it}
+      MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+      
+      # Upload e storage
+      UPLOAD_DIR: /app/static/uploads
+      MAX_UPLOAD_SIZE: 10485760  # 10MB
+      
+      # Performance
+      WORKERS: 4
+      WORKER_CONNECTIONS: 1000
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: json
+      
+      # Rate limiting
+      RATE_LIMIT_PER_MINUTE: 60
+      
+    volumes:
+      - backend_uploads:/app/static/uploads
+      - backend_logs:/app/logs
+    networks:
+      - iss-internal
+      - postgress_postgres-network
+      - traefik-network
+    depends_on:
+      - redis
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          cpus: '0.5'
+    labels:
+      # Abilita Traefik
+      - "traefik.enable=true"
+      
+      # Router per API backend
+      - "traefik.http.routers.iss-api.rule=Host(`innovazionesocialesalernitana.it`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.iss-api.entrypoints=websecure"
+      - "traefik.http.routers.iss-api.tls=true"
+      - "traefik.http.routers.iss-api.tls.certresolver=letsencrypt"
+      
+      # Servizio backend
+      - "traefik.http.services.iss-api.loadbalancer.server.port=8000"
+
+  # ISS Frontend - Next.js/React
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: iss-frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_BASE_URL=/api/v1
+      - VITE_ENVIRONMENT=${ENVIRONMENT:-production}
+      - VITE_APP_NAME=ISS - Innovazione Sociale Salernitana
+      - VITE_APP_VERSION=2.0.0
+    networks:
+      - iss-internal
+      - traefik-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          cpus: '0.25'
+    labels:
+      # Traefik configuration
+      - "traefik.enable=true"
+      
+      # HTTP Router PRODUZIONE con Let's Encrypt
+      - "traefik.http.routers.iss-frontend.rule=Host(`innovazionesocialesalernitana.it`)"
+      - "traefik.http.routers.iss-frontend.entrypoints=websecure"
+      - "traefik.http.routers.iss-frontend.tls=true"
+      - "traefik.http.routers.iss-frontend.tls.certresolver=letsencrypt"
+      
+      # Service
+      - "traefik.http.services.iss-frontend.loadbalancer.server.port=3000"
+  # Redis Commander per gestione Redis
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: iss-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: redis:redis:6379
+      HTTP_USER: admin
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin123}
+    ports:
+      - "8082:8081"
+    networks:
+      - iss-internal
+    depends_on:
+      - redis
+    # Disabilitato Traefik per evitare rate limit Let's Encrypt
+    # Accesso diretto su http://localhost:8082
+
+volumes:
+  # Cache Redis
+  redis_data:
+    driver: local
+  
+  # Upload files backend
+  backend_uploads:
+    driver: local
+  
+  # Logs backend
+  backend_logs:
+    driver: local
+
+networks:
+  # Network interno ISS
+  iss-internal:
+    driver: bridge
+    name: iss-internal
+  
+  # Network PostgreSQL Central (external)
+  postgress_postgres-network:
+    external: true
+    name: postgress_postgres-network
+  
+  # Network Traefik (external)
+  traefik-network:
+    external: true
+    name: traefik-network

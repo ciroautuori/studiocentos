@@ -3,7 +3,7 @@ from .bando import Bando, BandoStatus
 from .bando_config import BandoConfig, SourceType, ScheduleFrequency
 from .donations import Donation
 from .event import Event
-from .news import NewsPost
+from .newspost import NewsPost
 from .project import Project
 from .user import User, UserRole, UserStatus, AccessibilityNeeds, UserSession, UserPreferences
 from .volunteer import VolunteerApplication

@@ -117,7 +117,13 @@ app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 if settings.is_production:
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["innovazionesocialesalernitana.it", "*.innovazionesocialesalernitana.it", "localhost"]
+        allowed_hosts=[
+            "innovazionesocialesalernitana.it", 
+            "*.innovazionesocialesalernitana.it", 
+            "localhost",
+            "127.0.0.1",
+            "iss-backend"
+        ]
     )
 
 # CORS - Enhanced for multi-browser compatibility with explicit preflight handling

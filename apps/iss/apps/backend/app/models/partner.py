@@ -235,7 +235,7 @@ class Partner(Base):
     archiviato = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    creato_da = relationship("User", foreign_keys=[creato_da_user_id], back_populates="partners_creati")
+    creato_da = relationship("User", foreign_keys=[creato_da_user_id])
     modificato_da = relationship("User", foreign_keys=[modificato_da_user_id])
     attivita = relationship("PartnerAttivita", back_populates="partner", cascade="all, delete-orphan")
     documenti = relationship("PartnerDocumento", back_populates="partner", cascade="all, delete-orphan")
@@ -297,7 +297,7 @@ class PartnerContatto(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     # Relationships
-    partner = relationship("Partner", back_populates="contatti")
+    partner = relationship("Partner")
 
 
 class PartnerAttivita(Base):
@@ -333,8 +333,8 @@ class PartnerAttivita(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    partner = relationship("Partner", back_populates="attivita")
-    creata_da = relationship("User", back_populates="attivita_partner")
+    partner = relationship("Partner")
+    creata_da = relationship("User")
 
 
 class PartnerDocumento(Base):
@@ -370,5 +370,5 @@ class PartnerDocumento(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    partner = relationship("Partner", back_populates="documenti")
-    caricato_da = relationship("User", back_populates="documenti_partner")
+    partner = relationship("Partner")
+    caricato_da = relationship("User")
