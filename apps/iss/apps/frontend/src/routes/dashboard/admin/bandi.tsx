@@ -19,74 +19,35 @@ import {
   Clock
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { bandoService } from '@/services/api'
+import type { Bando } from '@/types/api'
 
 export const Route = createFileRoute('/dashboard/admin/bandi')({
   component: BandiManagement,
 })
 
 function BandiManagement() {
-  const [bandi, setBandi] = useState([])
+  const [bandi, setBandi] = useState<Bando[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-
-  // Mock data - in realtà verrebbe dalle API backend
-  const mockBandi = [
-    {
-      id: 1,
-      titolo: "Bando per l'Innovazione Sociale 2025",
-      descrizione: "Finanziamenti per progetti di innovazione sociale nel territorio campano",
-      importo_totale: 500000,
-      scadenza: "2025-12-31",
-      stato: "ATTIVO",
-      categoria: "Innovazione",
-      ente_finanziatore: "Regione Campania",
-      candidature: 45,
-      created_at: "2025-01-15"
-    },
-    {
-      id: 2,
-      titolo: "Sostegno alle APS del Territorio",
-      descrizione: "Contributi per associazioni di promozione sociale attive nel sociale",
-      importo_totale: 250000,
-      scadenza: "2025-11-30",
-      stato: "ATTIVO",
-      categoria: "Sociale",
-      ente_finanziatore: "Comune di Salerno",
-      candidature: 23,
-      created_at: "2025-02-01"
-    },
-    {
-      id: 3,
-      titolo: "Digitalizzazione del Terzo Settore",
-      descrizione: "Fondi per la trasformazione digitale delle organizzazioni non profit",
-      importo_totale: 300000,
-      scadenza: "2025-10-15",
-      stato: "ATTIVO",
-      categoria: "Digitale",
-      ente_finanziatore: "Ministero del Lavoro",
-      candidature: 67,
-      created_at: "2025-03-10"
-    },
-    {
-      id: 4,
-      titolo: "Bando Giovani Imprenditori Sociali",
-      descrizione: "Supporto per startup sociali guidate da under 35",
-      importo_totale: 150000,
-      scadenza: "2025-09-30",
-      stato: "SCADUTO",
-      categoria: "Giovani",
-      ente_finanziatore: "Fondazione Sud",
-      candidature: 89,
-      created_at: "2024-12-01"
-    }
-  ]
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Simula caricamento API
-    setTimeout(() => {
-      setBandi(mockBandi)
-      setLoading(false)
-    }, 1000)
+    const loadBandi = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await bandoService.search({ limit: 50 })
+        setBandi(response.results || response.bandi || [])
+      } catch (err: any) {
+        console.error('Errore caricamento bandi:', err)
+        setError('Errore nel caricamento dei bandi')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadBandi()
   }, [])
 
   const getStatoColor = (stato: string) => {
@@ -119,18 +80,18 @@ function BandiManagement() {
     }
   }
 
-  const filteredBandi = bandi.filter((bando: any) =>
-    bando.titolo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bando.descrizione.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bando.ente_finanziatore.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBandi = bandi.filter((bando: Bando) =>
+    bando.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    bando.descrizione?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    bando.ente?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const stats = {
     total: bandi.length,
-    attivi: bandi.filter((b: any) => b.stato === 'ATTIVO').length,
-    scaduti: bandi.filter((b: any) => b.stato === 'SCADUTO').length,
-    importoTotale: bandi.reduce((sum: number, b: any) => sum + b.importo_totale, 0),
-    candidatureTotali: bandi.reduce((sum: number, b: any) => sum + b.candidature, 0)
+    attivi: bandi.filter((b: Bando) => b.status === 'attivo').length,
+    scaduti: bandi.filter((b: Bando) => b.status === 'scaduto').length,
+    importoTotale: bandi.reduce((sum: number, b: Bando) => sum + (parseFloat(b.importo?.replace(/[^0-9.-]/g, '') || '0') || 0), 0),
+    candidatureTotali: 0 // Non disponibile nel modello attuale
   }
 
   const isScadenzaVicina = (scadenza: string) => {
@@ -244,19 +205,19 @@ function BandiManagement() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredBandi.map((bando: any) => (
+              {filteredBandi.map((bando: Bando) => (
                 <div key={bando.id} className="border rounded-lg p-6 hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">{bando.titolo}</h3>
-                        <Badge className={getStatoColor(bando.stato)}>
-                          {bando.stato}
+                        <h3 className="text-lg font-semibold">{bando.title}</h3>
+                        <Badge className={getStatoColor(bando.status?.toUpperCase() || 'ATTIVO')}>
+                          {bando.status?.toUpperCase() || 'ATTIVO'}
                         </Badge>
-                        <Badge className={getCategoriaColor(bando.categoria)}>
-                          {bando.categoria}
+                        <Badge className={getCategoriaColor(bando.categoria || 'Generale')}>
+                          {bando.categoria || 'Generale'}
                         </Badge>
-                        {isScadenzaVicina(bando.scadenza) && (
+                        {bando.scadenza && isScadenzaVicina(bando.scadenza) && (
                           <Badge className="bg-orange-100 text-orange-800">
                             <Clock className="h-3 w-3 mr-1" />
                             Scadenza vicina
@@ -267,21 +228,21 @@ function BandiManagement() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="font-medium">Importo:</span>
-                          <p className="text-green-600 font-semibold">€{bando.importo_totale.toLocaleString()}</p>
+                          <p className="text-green-600 font-semibold">{bando.importo || 'Non specificato'}</p>
                         </div>
                         <div>
                           <span className="font-medium">Scadenza:</span>
-                          <p className={isScadenzaVicina(bando.scadenza) ? 'text-orange-600 font-semibold' : ''}>
-                            {new Date(bando.scadenza).toLocaleDateString('it-IT')}
+                          <p className={bando.scadenza && isScadenzaVicina(bando.scadenza) ? 'text-orange-600 font-semibold' : ''}>
+                            {bando.scadenza ? new Date(bando.scadenza).toLocaleDateString('it-IT') : bando.scadenza_raw || 'Non specificata'}
                           </p>
                         </div>
                         <div>
                           <span className="font-medium">Ente:</span>
-                          <p>{bando.ente_finanziatore}</p>
+                          <p>{bando.ente}</p>
                         </div>
                         <div>
-                          <span className="font-medium">Candidature:</span>
-                          <p className="text-blue-600 font-semibold">{bando.candidature}</p>
+                          <span className="font-medium">Fonte:</span>
+                          <p className="text-blue-600 font-semibold">{bando.fonte}</p>
                         </div>
                       </div>
                     </div>

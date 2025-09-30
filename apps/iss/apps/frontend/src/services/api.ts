@@ -75,8 +75,8 @@ class APIClient {
     return response.data;
   }
 
-  async getRecentBandi(limit: number = 10): Promise<ISSSearchResponse<Bando>> {
-    const response: AxiosResponse<ISSSearchResponse<Bando>> = await this.client.get(
+  async getRecentBandi(limit: number = 10): Promise<BandoSearchResponse> {
+    const response: AxiosResponse<BandoSearchResponse> = await this.client.get(
       '/bandi/recent',
       {
         params: { limit },

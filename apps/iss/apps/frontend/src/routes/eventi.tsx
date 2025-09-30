@@ -3,36 +3,30 @@ import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { issService } from '@/services/api'
+import type { Evento } from '@/types/api'
 
 export const Route = createFileRoute('/eventi')({
   component: EventiPage,
 })
 
 function EventiPage() {
-  const [eventi, setEventi] = useState([])
+  const [eventi, setEventi] = useState<Evento[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data
-    setEventi([
-      {
-        id: 1,
-        titolo: "Workshop Accessibilità Digitale",
-        descrizione: "Come rendere il web accessibile a tutti",
-        gratuito: true,
-        data_inizio: "2025-10-25T15:00:00",
-        luogo: "Centro ISS Salerno",
-        posti_disponibili: 30
-      },
-      {
-        id: 2,
-        titolo: "Hackathon per il Sociale",
-        descrizione: "48 ore per sviluppare soluzioni innovative",
-        gratuito: true,
-        data_inizio: "2025-11-15T09:00:00",
-        luogo: "Online",
-        posti_disponibili: 50
+    const loadEventi = async () => {
+      try {
+        const response = await issService.searchEventi({ limit: 20 })
+        setEventi(response.items || [])
+      } catch (err) {
+        console.error('Errore caricamento eventi:', err)
+      } finally {
+        setLoading(false)
       }
-    ])
+    }
+
+    loadEventi()
   }, [])
 
   const formatDate = (dateString) => {

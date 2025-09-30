@@ -3,26 +3,30 @@ import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { issService } from '@/services/api'
+import type { Corso } from '@/types/api'
 
 export const Route = createFileRoute('/corsi')({
   component: CorsiPage,
 })
 
 function CorsiPage() {
-  const [corsi, setCorsi] = useState([])
+  const [corsi, setCorsi] = useState<Corso[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data
-    setCorsi([
-      {
-        id: 1,
-        titolo: "Alfabetizzazione Digitale",
-        descrizione: "Corso base per computer e internet",
-        gratuito: true,
-        durata_ore: 20,
-        docente: "Maria Rossi"
+    const loadCorsi = async () => {
+      try {
+        const response = await issService.searchCorsi({ limit: 20 })
+        setCorsi(response.items || [])
+      } catch (err) {
+        console.error('Errore caricamento corsi:', err)
+      } finally {
+        setLoading(false)
       }
-    ])
+    }
+
+    loadCorsi()
   }, [])
 
   return (

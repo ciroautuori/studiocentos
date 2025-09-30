@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { issService } from '@/services/api'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,31 +11,33 @@ export const Route = createFileRoute('/progetti')({
 
 function ProgettiPage() {
   const [progetti, setProgetti] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data
-    setProgetti([
-      {
-        id: 1,
-        nome: "Digital Bridge Campania",
-        descrizione_breve: "Ridurre il digital divide nelle aree rurali campane",
-        stato: "in_corso",
-        budget_totale: 150000,
-        data_inizio: "2025-01-15",
-        team_size: 8,
-        impatto_sociale: "2000+ cittadini raggiunti"
-      },
-      {
-        id: 2,
-        nome: "APS Tech Hub",
-        descrizione_breve: "Piattaforma tecnologica per il terzo settore",
-        stato: "in_corso",
-        budget_totale: 80000,
-        data_inizio: "2025-03-01",
-        team_size: 5,
-        impatto_sociale: "500+ APS supportate"
+    const loadProgetti = async () => {
+      try {
+        const response = await issService.getProgetti({ limit: 20 })
+        setProgetti(response.items || [])
+      } catch (err) {
+        console.error('Errore caricamento progetti:', err)
+        // Fallback se API non disponibile
+        setProgetti([
+          {
+            id: 1,
+            nome: "Sistema Bandi ISS",
+            descrizione_breve: "Monitoraggio automatico bandi per APS Campania",
+            stato: "completato", 
+            budget_totale: 50000,
+            team_size: 3,
+            impatto_sociale: "13 bandi attivi trovati"
+          }
+        ])
+      } finally {
+        setLoading(false)
       }
-    ])
+    }
+
+    loadProgetti()
   }, [])
 
   const getStatoColor = (stato) => {

@@ -119,15 +119,15 @@ export const BandoDashboard: React.FC<BandoDashboardProps> = ({
         
         <StatCard
           title="In Scadenza"
-          value={Math.floor((stats.attivi || 0) * 0.15)} // Mock calculation
+          value={stats.in_scadenza || 0}
           icon={<Calendar className="h-5 w-5" />}
           variant="warning"
         />
         
         <StatCard
           title="Nuovi Oggi"
-          value={Math.floor((stats.total_bandi || 0) * 0.02)} // Mock calculation
-          change={12}
+          value={stats.nuovi_oggi || 0}
+          change={stats.crescita_oggi || 0}
           icon={<TrendingUp className="h-5 w-5" />}
           variant="success"
         />

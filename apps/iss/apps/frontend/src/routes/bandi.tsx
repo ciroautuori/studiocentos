@@ -81,9 +81,9 @@ function BandiPage() {
   });
 
   // Memoized computations
-  const bandi = bandiResponse?.data || [];
+  const bandi = bandiResponse?.items || [];
   const totalCount = bandiResponse?.total || 0;
-  const hasNextPage = bandiResponse?.has_next || false;
+  const hasNextPage = (bandiResponse?.page || 0) < (bandiResponse?.pages || 0);
   const currentPage = filters.page;
 
   // Handler aggiornamento filtri

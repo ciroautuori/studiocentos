@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/utils/cn';
+import { bandoService } from '@/services/api';
 import type { BandoSource, BandoStatus, BandoSearchParams } from '@/types/api';
 
 interface BandoSearchBarProps {
@@ -46,17 +47,29 @@ export const BandoSearchBar: React.FC<BandoSearchBarProps> = ({
   const [sort, setSort] = useState(initialParams.sort || 'created_at');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Suggestions for autocomplete (mock data for now)
-  const [suggestions] = useState([
-    'giovani',
-    'inclusione sociale',
-    'alfabetizzazione digitale',
-    'formazione professionale',
-    'startup',
-    'innovazione',
-    'cultura',
-    'ambiente',
-  ]);
+  // Suggestions from API real keywords
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  // Load suggestions from real bando stats
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        const stats = await bandoService.getStats();
+        if (stats.keywords_top) {
+          const keywords = stats.keywords_top.map(item => item.keyword);
+          setSuggestions(keywords);
+        }
+      } catch (error) {
+        // Fallback keywords se API non disponibile
+        setSuggestions([
+          'digitale', 'innovazione', 'giovani', 'inclusione', 'formazione',
+          'cultura', 'sociale', 'terzo settore', 'volontariato', 'aps'
+        ]);
+      }
+    };
+
+    loadSuggestions();
+  }, []);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);

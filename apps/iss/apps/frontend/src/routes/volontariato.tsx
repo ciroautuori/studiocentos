@@ -12,31 +12,43 @@ function VolontariatoPage() {
   const [opportunita, setOpportunita] = useState([])
 
   useEffect(() => {
-    // Mock data
-    setOpportunita([
-      {
-        id: 1,
-        titolo: "Supporto Digitale Anziani",
-        descrizione_breve: "Aiuta gli anziani ad usare smartphone e computer",
-        tipo_impegno: "continuativo",
-        ore_settimanali: 4,
-        skills_richieste: ["Pazienza", "Comunicazione", "Informatica base"],
-        luogo: "Salerno",
-        candidature_aperte: true,
-        match_score: 95
-      },
-      {
-        id: 2,
-        titolo: "Sviluppatore Web Volontario",
-        descrizione_breve: "Sviluppa siti web per piccole APS campane",
-        tipo_impegno: "progetto",
-        ore_settimanali: 6,
-        skills_richieste: ["React", "JavaScript", "CSS"],
-        luogo: "Remote",
-        candidature_aperte: true,
-        match_score: 88
+    const loadOpportunita = async () => {
+      try {
+        // TODO: Implement API call when available
+        // const response = await apiService.getOpportunitaVolontariato({ limit: 20 })
+        // setOpportunita(response.items || [])
+        
+        // Fallback data per ora
+        setOpportunita([
+          {
+            id: 1,
+            titolo: "Supporto Digitale Anziani",
+            descrizione_breve: "Aiuta gli anziani ad usare smartphone e computer",
+            tipo_impegno: "continuativo",
+            ore_settimanali: 4,
+            skills_richieste: ["Pazienza", "Comunicazione", "Informatica base"],
+            luogo: "Salerno",
+            candidature_aperte: true,
+            match_score: 95
+          },
+          {
+            id: 2,
+            titolo: "Sviluppatore Web Volontario", 
+            descrizione_breve: "Sviluppa siti web per piccole APS campane",
+            tipo_impegno: "progetto",
+            ore_settimanali: 6,
+            skills_richieste: ["React", "JavaScript", "CSS"],
+            luogo: "Remote",
+            candidature_aperte: true,
+            match_score: 88
+          }
+        ])
+      } catch (err) {
+        console.error('Errore caricamento volontariato:', err)
       }
-    ])
+    }
+    
+    loadOpportunita()
   }, [])
 
   const getTipoColor = (tipo) => {

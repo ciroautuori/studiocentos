@@ -20,15 +20,15 @@ export interface Bando {
   fonte: BandoSource;
   status: BandoStatus;
   scadenza?: string; // ISO datetime
-  importo_max?: number;
-  importo_min?: number;
-  keywords: string[];
+  scadenza_raw?: string;
+  importo?: string;
+  categoria?: string;
   keyword_match?: string;
-  created_at: string; // ISO datetime
-  updated_at: string; // ISO datetime
   hash_identifier: string;
-  giorni_rimanenti?: number; // Calculated field
-  scaduto?: boolean; // Calculated field
+  data_trovato: string; // ISO datetime
+  data_aggiornamento?: string; // ISO datetime
+  notificato_email: boolean;
+  notificato_telegram: boolean;
 }
 
 export interface BandoSearchParams {
@@ -44,9 +44,8 @@ export interface BandoSearchResponse {
   items: Bando[];
   total: number;
   page: number;
+  size: number;
   pages: number;
-  has_next: boolean;
-  has_prev: boolean;
 }
 
 export interface BandoStats {
