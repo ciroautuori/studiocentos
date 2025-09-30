@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
-    projects, events, news, volunteer, bandi, bando_config, semantic_search, stats,
+    projects, events, news, volunteer, bandi, bando_config, semantic_search, stats, aps_users,
     corsi, eventi, progetti, volontariato, newspost, testimonials, partners
 )
 from app.api.v1 import auth, users
@@ -36,6 +36,9 @@ api_router.include_router(semantic_search.router, prefix="/ai", tags=["ai-semant
 
 # ISS Platform Statistics 📊
 api_router.include_router(stats.router, prefix="/stats", tags=["statistics"])
+
+# APS Users & Organizations System 👥
+api_router.include_router(aps_users.router, prefix="/aps-users", tags=["aps-users"])
 
 # Sistema Donazioni (per supportare i progetti)
 # api_router.include_router(donations.router, prefix="/donazioni", tags=["donazioni"])

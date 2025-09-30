@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, Date, Boolean, DateTime, Enum
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
 from app.database.database import Base
@@ -47,6 +48,11 @@ class Bando(Base):
     # Dati aggiuntivi strutturati
     importo = Column(String(100), nullable=True)
     categoria = Column(String(100), nullable=True)
+    
+    # Relazioni con sistema utenti
+    applications = relationship("BandoApplication", back_populates="bando")
+    watchlists = relationship("BandoWatchlist", back_populates="bando") 
+    ai_recommendations = relationship("AIRecommendation", back_populates="bando")
     
     def __repr__(self):
         return f"<Bando(id={self.id}, title='{self.title}', ente='{self.ente}', fonte='{self.fonte}')>"

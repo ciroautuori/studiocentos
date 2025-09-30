@@ -4,7 +4,7 @@ Implementa matching intelligente basato su similarità semantica
 """
 
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -199,6 +199,135 @@ class SemanticSearchService:
         logger.info(f"🎯 Match profilo: '{query}'")
         return await self.semantic_search(query, db, limit=limit, threshold=0.2)
     
+    async def generate_user_recommendations(self, user_profile: Dict, db, limit: int = 10) -> List[Dict]:
+        """Genera raccomandazioni AI personalizzate per un utente"""
+        if not self.model:
+            await self.initialize()
+        
+        # Costruisci profilo semantico utente
+        profile_parts = []
+        
+        if user_profile.get('organization_type'):
+            profile_parts.append(f"organizzazione {user_profile['organization_type']}")
+        
+        if user_profile.get('sectors'):
+            profile_parts.append(f"settori: {', '.join(user_profile['sectors'])}")
+        
+        if user_profile.get('target_groups'):
+            profile_parts.append(f"target: {', '.join(user_profile['target_groups'])}")
+        
+        if user_profile.get('keywords'):
+            profile_parts.append(f"attività: {', '.join(user_profile['keywords'])}")
+        
+        if user_profile.get('description'):
+            profile_parts.append(f"descrizione: {user_profile['description']}")
+        
+        profile_query = " ".join(profile_parts)
+        
+        # Esegui match semantico
+        matches = await self.semantic_search(profile_query, db, limit=limit * 2, threshold=0.15)
+        
+        # Filtra e arricchisci risultati
+        recommendations = []
+        for bando, similarity in matches:
+            # Calcola fattori di match specifici
+            match_factors = self._analyze_match_factors(user_profile, bando)
+            
+            # Genera reasoning AI
+            reasoning = self._generate_ai_reasoning(user_profile, bando, similarity, match_factors)
+            
+            recommendations.append({
+                'bando': bando,
+                'recommendation_score': similarity,
+                'reasoning': reasoning,
+                'match_factors': match_factors
+            })
+        
+        # Ordina per score e prendi top
+        recommendations.sort(key=lambda x: x['recommendation_score'], reverse=True)
+        return recommendations[:limit]
+    
+    def _analyze_match_factors(self, user_profile: Dict, bando) -> Dict[str, Any]:
+        """Analizza fattori specifici di compatibilità"""
+        factors = {
+            'sector_match': False,
+            'target_match': False,
+            'keyword_match': False,
+            'geographical_match': False,
+            'budget_compatibility': False
+        }
+        
+        # Analisi settori
+        if user_profile.get('sectors') and bando.categoria:
+            user_sectors = [s.lower() for s in user_profile['sectors']]
+            if any(sector in bando.categoria.lower() for sector in user_sectors):
+                factors['sector_match'] = True
+        
+        # Analisi target groups
+        if user_profile.get('target_groups'):
+            bando_text = f"{bando.title} {bando.descrizione or ''}".lower()
+            if any(target in bando_text for target in user_profile['target_groups']):
+                factors['target_match'] = True
+        
+        # Analisi keywords
+        if user_profile.get('keywords'):
+            bando_text = f"{bando.title} {bando.descrizione or ''}".lower()
+            if any(keyword.lower() in bando_text for keyword in user_profile['keywords']):
+                factors['keyword_match'] = True
+        
+        # Analisi geografica
+        if user_profile.get('geographical_scope') and bando.ente:
+            if user_profile['geographical_scope'].lower() in bando.ente.lower():
+                factors['geographical_match'] = True
+        
+        # Budget compatibility
+        if user_profile.get('max_budget_interest') and bando.importo:
+            try:
+                # Estrai numero da stringa importo
+                import re
+                numbers = re.findall(r'\d+(?:\.\d+)?', str(bando.importo))
+                if numbers:
+                    bando_amount = float(numbers[0])
+                    if bando_amount <= user_profile['max_budget_interest']:
+                        factors['budget_compatibility'] = True
+            except:
+                pass
+        
+        return factors
+    
+    def _generate_ai_reasoning(self, user_profile: Dict, bando, similarity: float, factors: Dict) -> str:
+        """Genera spiegazione AI del match"""
+        reasons = []
+        
+        if factors.get('sector_match'):
+            reasons.append("settore di competenza")
+        
+        if factors.get('target_match'):
+            reasons.append("gruppi target compatibili")
+        
+        if factors.get('keyword_match'):
+            reasons.append("attività correlate")
+        
+        if factors.get('geographical_match'):
+            reasons.append("area geografica")
+        
+        if factors.get('budget_compatibility'):
+            reasons.append("budget compatibile")
+        
+        if similarity > 0.7:
+            strength = "Molto forte"
+        elif similarity > 0.5:
+            strength = "Forte"
+        elif similarity > 0.3:
+            strength = "Buona"
+        else:
+            strength = "Moderata"
+        
+        if reasons:
+            return f"{strength} compatibilità per: {', '.join(reasons)}"
+        else:
+            return f"{strength} compatibilità semantica generale"
+
     def get_intelligent_suggestions(self, search_history: List[str], limit: int = 5) -> List[str]:
         """Genera suggerimenti intelligenti basati sullo storico"""
         if not search_history or not self.model:
