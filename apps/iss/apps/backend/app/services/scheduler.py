@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import async_session_maker
 from app.crud.bando_config import bando_config_crud
 from app.services.bando_monitor import bando_monitor_service
+from app.services.alert_system import alert_system
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,36 @@ class BandoSchedulerService:
                 trigger=CronTrigger(hour=2, minute=0),
                 id='bandi_cleanup',
                 name='Pulizia automatica bandi vecchi',
+                replace_existing=True,
+                max_instances=1
+            )
+            
+            # Job per alert nuovi bandi (ogni ora)
+            self.scheduler.add_job(
+                func=self._check_new_bandi_alerts,
+                trigger=IntervalTrigger(hours=1),
+                id='new_bandi_alerts',
+                name='Alert nuovi bandi agli utenti',
+                replace_existing=True,
+                max_instances=1
+            )
+            
+            # Job per reminder scadenze (ogni 6 ore)
+            self.scheduler.add_job(
+                func=self._check_deadline_reminders,
+                trigger=IntervalTrigger(hours=6),
+                id='deadline_reminders',
+                name='Reminder scadenze bandi',
+                replace_existing=True,
+                max_instances=1
+            )
+            
+            # Job per newsletter settimanale (lunedì alle 09:00)
+            self.scheduler.add_job(
+                func=self._send_weekly_newsletters,
+                trigger=CronTrigger(day_of_week='mon', hour=9, minute=0),
+                id='weekly_newsletters',
+                name='Newsletter settimanali',
                 replace_existing=True,
                 max_instances=1
             )
@@ -217,16 +248,39 @@ class BandoSchedulerService:
         if not self.scheduler:
             return None
         
-        try:
-            job = self.scheduler.get_job(job_id)
-            if job:
-                return {
-                    'id': job.id,
-                    'name': job.name,
-                    'next_run': job.next_run_time,
-                    'trigger': str(job.trigger)
-                }
-        except Exception:
+        return self.scheduler.get_job(job_id)
+    
+    # ========== NOTIFICATION JOBS ==========
+    
+    async def _check_new_bandi_alerts(self):
+        """Job per controllare nuovi bandi e inviare alert"""
+        async with async_session_maker() as db:
+            try:
+                logger.info("📧 Esecuzione job alert nuovi bandi")
+                results = await alert_system.check_new_bandi_alerts(db)
+                logger.info(f"📧 Alert nuovi bandi completato: {results}")
+            except Exception as e:
+                logger.error(f"❌ Errore job alert nuovi bandi: {e}")
+    
+    async def _check_deadline_reminders(self):
+        """Job per controllare scadenze e inviare reminder"""
+        async with async_session_maker() as db:
+            try:
+                logger.info("⏰ Esecuzione job reminder scadenze")
+                results = await alert_system.check_deadline_reminders(db)
+                logger.info(f"⏰ Reminder scadenze completato: {results}")
+            except Exception as e:
+                logger.error(f"❌ Errore job reminder scadenze: {e}")
+    
+    async def _send_weekly_newsletters(self):
+        """Job per inviare newsletter settimanali"""
+        async with async_session_maker() as db:
+            try:
+                logger.info("📊 Esecuzione job newsletter settimanali")
+                results = await alert_system.send_weekly_newsletters(db)
+                logger.info(f"📊 Newsletter settimanali completate: {results}")
+            except Exception as e:
+                logger.error(f"❌ Errore job newsletter settimanali: {e}")
             pass
         
         return None
