@@ -102,17 +102,18 @@ function BandiManagement() {
   }
 
   return (
-    <DashboardLayout
-      userRole="admin"
-      title="Gestione Bandi"
-      description="Gestisci tutti i bandi e le opportunità di finanziamento"
-      action={
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestione Bandi</h1>
+          <p className="text-muted-foreground">Gestisci tutti i bandi e le opportunità di finanziamento</p>
+        </div>
         <Button className="bg-red-600 hover:bg-red-700">
           <Plus className="h-4 w-4 mr-2" />
           Nuovo Bando
         </Button>
-      }
-    >
+      </div>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
@@ -266,6 +267,6 @@ function BandiManagement() {
           )}
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   )
 }
