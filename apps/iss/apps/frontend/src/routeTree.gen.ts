@@ -28,6 +28,8 @@ import { Route as DashboardImport } from './routes/dashboard/index'
 import { Route as DashboardAdminImport } from './routes/dashboard/admin'
 import { Route as DashboardUserImport } from './routes/dashboard/user'
 import { Route as DashboardPartnerImport } from './routes/dashboard/partner'
+import { Route as DashboardAdminUsersImport } from './routes/dashboard/admin/users'
+import { Route as DashboardAdminBandiImport } from './routes/dashboard/admin/bandi'
 
 // Create Virtual Routes
 
@@ -104,6 +106,16 @@ const DashboardUserRoute = DashboardUserImport.update({
 const DashboardPartnerRoute = DashboardPartnerImport.update({
   path: '/partner',
   getParentRoute: () => DashboardRoute,
+} as any)
+
+const DashboardAdminUsersRoute = DashboardAdminUsersImport.update({
+  path: '/users',
+  getParentRoute: () => DashboardAdminRoute,
+} as any)
+
+const DashboardAdminBandiRoute = DashboardAdminBandiImport.update({
+  path: '/bandi',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -215,6 +227,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPartnerImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/admin/users': {
+      id: '/dashboard/admin/users'
+      path: '/users'
+      fullPath: '/dashboard/admin/users'
+      preLoaderRoute: typeof DashboardAdminUsersImport
+      parentRoute: typeof DashboardAdminRoute
+    }
+    '/dashboard/admin/bandi': {
+      id: '/dashboard/admin/bandi' 
+      path: '/bandi'
+      fullPath: '/dashboard/admin/bandi'
+      preLoaderRoute: typeof DashboardAdminBandiImport
+      parentRoute: typeof DashboardAdminRoute
+    }
   }
 }
 
@@ -234,7 +260,10 @@ export const routeTree = rootRoute.addChildren({
   NewsRoute,
   PartnersRoute,
   DashboardRoute: DashboardRoute.addChildren({
-    DashboardAdminRoute,
+    DashboardAdminRoute: DashboardAdminRoute.addChildren({
+      DashboardAdminUsersRoute,
+      DashboardAdminBandiRoute,
+    }),
     DashboardUserRoute,
     DashboardPartnerRoute,
   }),
