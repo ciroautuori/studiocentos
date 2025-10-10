@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
-    projects, events, news, volunteer, bandi, bando_config, semantic_search, stats, aps_users, notifications, analytics,
+    projects, events, news, volunteer, bandi, bando_config, semantic_search, stats, aps_users, notifications, analytics, admin,
     corsi, eventi, progetti, volontariato, newspost, testimonials, partners
 )
 from app.api.v1 import auth, users
@@ -45,6 +45,9 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 
 # Analytics & Dashboard 📊
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+
+# Admin & System Management 🔐
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 
 # Sistema Donazioni (per supportare i progetti)
 # api_router.include_router(donations.router, prefix="/donazioni", tags=["donazioni"])

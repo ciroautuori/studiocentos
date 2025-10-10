@@ -8,8 +8,8 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
 import asyncio
 from jinja2 import Template
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import smtplib
 import ssl
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,17 +45,17 @@ class EmailNotificationService:
         
         try:
             # Crea messaggio
-            message = MimeMultipart("alternative")
+            message = MIMEMultipart("alternative")
             message["Subject"] = subject
             message["From"] = self.from_email
             message["To"] = to_email
             
             # Aggiungi contenuto
             if text_content:
-                part1 = MimeText(text_content, "plain")
+                part1 = MIMEText(text_content, "plain")
                 message.attach(part1)
             
-            part2 = MimeText(html_content, "html")
+            part2 = MIMEText(html_content, "html")
             message.attach(part2)
             
             # Invia email
