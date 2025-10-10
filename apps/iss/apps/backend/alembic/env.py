@@ -20,6 +20,8 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 from app.database.database import Base
 from app.models import Project, Event, NewsPost, VolunteerApplication, AdminUser
+from app.models.bando import Bando
+from app.models.aps_user import APSUser, BandoApplication, BandoWatchlist, AIRecommendation
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

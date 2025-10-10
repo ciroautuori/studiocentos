@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Union, Any, Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -9,9 +8,7 @@ from app.core.config import settings
 from app.database.database import get_sync_db
 from app.models.user import User, UserRole, UserStatus
 import secrets
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import hashlib
 
 # HTTP Bearer security scheme
 security = HTTPBearer(auto_error=False)
@@ -48,11 +45,17 @@ def verify_token(token: str) -> Optional[dict]:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    if not plain_password or not hashed_password:
+        return False
+    # Hash della password plain con salt
+    salt = "iss_platform_salt_2024"  # Salt fisso per ora
+    plain_hashed = hashlib.sha256((plain_password + salt).encode()).hexdigest()
+    return plain_hashed == hashed_password
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = "iss_platform_salt_2024"  # Salt fisso per ora  
+    return hashlib.sha256((password + salt).encode()).hexdigest()
 
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_sync_db)) -> User:
