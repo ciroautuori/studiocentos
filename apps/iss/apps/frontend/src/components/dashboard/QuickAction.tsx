@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/utils';
+import { cn } from '@/utils/cn';
 
 interface QuickActionProps {
   title: string;

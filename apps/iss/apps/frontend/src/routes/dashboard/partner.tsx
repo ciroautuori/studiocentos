@@ -1,19 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatCard } from '@/components/dashboard/StatCard'
+import { ChartCard } from '@/components/dashboard/ChartCard'
+import { QuickAction } from '@/components/dashboard/QuickAction'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { 
-  Building, 
-  Users, 
-  TrendingUp,
-  DollarSign,
-  Target,
-  Clock,
+  Building,
+  Users,
+  FileText,
   BarChart3,
+  Target,
+  TrendingUp,
   Handshake,
-  PlusCircle
+  Mail,
+  Plus,
+  FolderOpen
 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard/partner')({
@@ -22,158 +23,126 @@ export const Route = createFileRoute('/dashboard/partner')({
 
 function PartnerDashboard() {
   const partnerStats = {
-    activeProjects: 7,
-    completedProjects: 12,
-    totalBudget: 450000,
-    teamMembers: 25,
-    impact: 85
+    totalProjects: 25,
+    activeCollaborations: 8,
+    teamMembers: 45,
+    completedProjects: 67,
+    revenue: 156000,
+    growth: 18.5
   }
 
-  const activeProjects = [
-    { name: "Progetto Inclusione Digitale", progress: 75, budget: 85000, deadline: "15 Nov 2025", team: 8 },
-    { name: "Workshop Sostenibilità", progress: 45, budget: 35000, deadline: "30 Dic 2025", team: 5 },
-    { name: "Formazione Giovani", progress: 90, budget: 60000, deadline: "10 Gen 2026", team: 12 }
+  // Dati per grafici
+  const projectsData = [
+    { name: 'Gen', value: 12 },
+    { name: 'Feb', value: 19 },
+    { name: 'Mar', value: 25 },
+    { name: 'Apr', value: 22 },
+    { name: 'Mag', value: 30 },
+    { name: 'Giu', value: 35 }
   ]
 
+  const collaborationsData = [
+    { name: 'APS Locali', value: 15 },
+    { name: 'Enti Pubblici', value: 8 },
+    { name: 'Aziende', value: 12 },
+    { name: 'Fondazioni', value: 5 }
+  ]
+
+  const handleQuickAction = (action: string) => {
+    console.log(`Partner quick action: ${action}`)
+  }
+
   return (
-    <DashboardLayout
+    <DashboardLayout 
+      title="Dashboard Partner" 
+      description="Gestisci collaborazioni e progetti partnership"
       userRole="partner"
-      title="Dashboard Partner"
-      description="Area riservata per la gestione delle partnership e collaborazioni"
       action={
-        <Button className="bg-purple-600 hover:bg-purple-700">
-          <PlusCircle className="h-4 w-4 mr-2" />
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
           Nuovo Progetto
         </Button>
       }
     >
-      {/* Partner Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Progetti Attivi</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{partnerStats.activeProjects}</div>
-            <p className="text-xs text-muted-foreground">
-              {partnerStats.completedProjects} completati
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budget Totale</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">€{partnerStats.totalBudget.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1" />
-              +15% rispetto al trimestre scorso
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{partnerStats.teamMembers}</div>
-            <p className="text-xs text-muted-foreground">
-              Collaboratori attivi
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Impact Score</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{partnerStats.impact}%</div>
-            <Progress value={partnerStats.impact} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-1">
-              Impatto sociale misurato
-            </p>
-          </CardContent>
-        </Card>
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Progetti Attivi"
+          value={partnerStats.totalProjects}
+          change="+15.2%"
+          trend="up"
+          icon={Target}
+        />
+        <StatCard
+          title="Collaborazioni"
+          value={partnerStats.activeCollaborations}
+          change="+3 questo mese"
+          trend="up"
+          icon={Handshake}
+        />
+        <StatCard
+          title="Team Members"
+          value={partnerStats.teamMembers}
+          change="+8 new"
+          trend="up"
+          icon={Users}
+        />
+        <StatCard
+          title="Progetti Completati"
+          value={partnerStats.completedProjects}
+          change={`+${partnerStats.growth}%`}
+          trend="up"
+          icon={FileText}
+        />
       </div>
 
-      {/* Active Projects */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Progetti Attivi</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeProjects.map((project, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-lg">{project.name}</CardTitle>
-                <CardDescription>Budget: €{project.budget.toLocaleString()}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Progresso</span>
-                    <span>{project.progress}%</span>
-                  </div>
-                  <Progress value={project.progress} />
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Scadenza: {project.deadline}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {project.team} membri
-                    </span>
-                  </div>
-                  <Button size="sm" className="w-full">
-                    Gestisci Progetto
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <ChartCard
+          title="Crescita Progetti"
+          description="Andamento progetti mensili"
+          data={projectsData}
+          type="line"
+        />
+        <ChartCard
+          title="Tipologie Collaborazioni"
+          description="Distribuzione partner per categoria"
+          data={collaborationsData}
+          type="pie"
+        />
       </div>
 
-      {/* Partnership Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Partnership Attive</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              { partner: "ISS Salerno", type: "Formazione", status: "Attiva", value: "€45,000" },
-              { partner: "Comune di Salerno", type: "Progetti Sociali", status: "In Sviluppo", value: "€80,000" },
-              { partner: "Università Campus", type: "Ricerca", status: "Attiva", value: "€25,000" },
-              { partner: "Fondazione Sud", type: "Innovazione", status: "Pianificazione", value: "€60,000" }
-            ].map((partnership, index) => (
-              <div key={index} className="flex items-center justify-between border-b pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-1 rounded-full bg-purple-100">
-                    <Handshake className="h-3 w-3 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{partnership.partner}</p>
-                    <p className="text-sm text-muted-foreground">{partnership.type} • {partnership.value}</p>
-                  </div>
-                </div>
-                <Badge 
-                  variant={partnership.status === 'Attiva' ? 'default' : 'secondary'}
-                >
-                  {partnership.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <QuickAction
+          title="I Miei Progetti"
+          description="Gestisci i tuoi progetti attivi"
+          icon={Target}
+          onClick={() => handleQuickAction('projects')}
+          variant="primary"
+        />
+        <QuickAction
+          title="Team Management"
+          description="Gestisci membri del team"
+          icon={Users}
+          onClick={() => handleQuickAction('team')}
+          variant="secondary"
+        />
+        <QuickAction
+          title="Documenti"
+          description="Contratti e documentazione"
+          icon={FolderOpen}
+          onClick={() => handleQuickAction('documents')}
+          variant="default"
+        />
+        <QuickAction
+          title="Analytics"
+          description="Report e statistiche avanzate"
+          icon={BarChart3}
+          onClick={() => handleQuickAction('analytics')}
+          variant="destructive"
+        />
+      </div>
     </DashboardLayout>
   )
 }
